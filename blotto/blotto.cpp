@@ -1,3 +1,7 @@
+//
+// Created by cygnus330 on 2023-04-05.
+//
+
 #include "blotto.h"
 
 #include <iostream>
@@ -12,6 +16,7 @@ std::mt19937 mt_engine(rd());
 
 namespace blt
 {
+	// 제너레이터
 	void gen(uint32_t n, uint32_t k, std::vector<uint32_t> &b) // 1000
 	{
 		b.resize(n);
@@ -34,6 +39,7 @@ namespace blt
 		b[n-1] = cnt;
 	}
 
+	// 게임 진행
 	int32_t game(std::vector<uint32_t> a, std::vector<uint32_t> b) // 2000
 	{
 		uint32_t sz = a.size();
