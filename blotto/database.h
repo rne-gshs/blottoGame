@@ -34,7 +34,8 @@ namespace db
 			bool operator == (result &a) const {return this->batch == a.batch;}
 			result(uint32_t w, uint32_t d, uint32_t l, const std::vector<uint32_t> &v);
 		};
-		std::vector<db::dataBase::result> data;
+		//legacy
+		//std::vector<db::dataBase::result> data;
 		std::map<std::vector<uint32_t>, db::dataBase::wdl> dataMap;
 
 	 public:
