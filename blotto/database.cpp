@@ -8,52 +8,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "error.h"
 
 namespace db
 {
-	dataBase::wdl::wdl(const uint32_t w, const uint32_t d, const uint32_t l) : win(w), draw(d), lose(l) {}
-	dataBase::result::result(const uint32_t w, const uint32_t d, const uint32_t l, const std::vector<uint32_t> &v) : db::dataBase::wdl(w, d, l), batch(v) {}
-	void dataBase::push(uint32_t w, uint32_t d, uint32_t l, const std::vector<uint32_t> &v) {dataMap.insert(std::make_pair(v, wdl(w, d, l)));}
-	void dataBase::add(const std::string T, std::vector<uint32_t> &b)
-	{
-		//result A = result(0, 0, 0, b);
-		auto idx = dataMap.find(b);
-		if(idx == dataMap.end())
-			err::queryErr("db::dataBase::add()", std::vector<std::string>{"Wrong Vector"}, 10000);
-
-		if(T == "win") idx->second.win++;
-		else if(T == "draw") idx->second.draw++;
-		else if(T == "lose") idx->second.lose++;
-		else err::queryErr("db::dataBase::add()", std::vector<std::string>{"Wrong Query", T}, 10001);
-	}
-	void dataBase::addN(const std::string T, std::vector<uint32_t> &b, int32_t n)
-	{
-		//result A = result(0, 0, 0, b);
-		auto idx = dataMap.find(b);
-		if(idx == dataMap.end())
-			err::queryErr("db::dataBase::addN()", std::vector<std::string>{"Wrong Vector"}, 10000);
-
-		if(T == "win") idx->second.win += n;
-		else if(T == "draw") idx->second.draw += n;
-		else if(T == "lose") idx->second.lose += n;
-		else err::queryErr("db::dataBase::addN()", std::vector<std::string>{"Wrong Query", T}, 10001);
-	}
-	std::tuple<int, int, int> dataBase::get(const std::vector<uint32_t> b)
-	{
-		//result A = result(0, 0, 0, b);
-		auto idx = dataMap.find(b);
-		if(idx == dataMap.end())
-		{
-			std::cerr << "Not In DB" << std::endl;
-			std::cerr << "Query db::dataBase::get()" << std::endl;
-			for(auto &i:b)
-				std::cerr << i << " ";
-			std::cerr << std::endl;
-			exit(10000);
-		}
-
-		auto T = idx->second;
-		return std::tuple<int, int, int>{T.win, T.draw, T.lose};
-	}
 } // db

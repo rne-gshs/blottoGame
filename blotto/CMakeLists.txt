@@ -12,4 +12,4 @@ if (OPENMP_FOUND)
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
-add_executable(blottoGame main.cpp blotto.cpp blotto.h database.cpp database.h error.cpp error.h error.h)
+add_executable(blottoGame main.cpp blotto.cpp blotto.h database.cpp database.h)
