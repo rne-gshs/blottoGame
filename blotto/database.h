@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <cstdio>
+#include <utility>
 #include <vector>
 #include <map>
 #include <string>
@@ -14,6 +15,8 @@
 #include <tuple>
 #include <iostream>
 #include <random>
+
+const double E = (double)2.7182818284590452354;
 
 namespace db
 {
@@ -23,18 +26,19 @@ namespace db
 	 protected:
 		struct wdl
 		{
+			uint32_t win;
+			uint32_t draw;
+			uint32_t lose;
+
 			wdl()
 			{
 				win = 0;
 				draw = 0;
 				lose = 0;
 			}
-
-			uint32_t win;
-			uint32_t draw;
-			uint32_t lose;
-
 			wdl(uint32_t w, uint32_t d, uint32_t l) : win(w), draw(d), lose(l) {};
+
+			uint32_t sum() { return (win + draw + lose); }
 
 			bool operator < (const wdl &a) const
 			{
@@ -55,9 +59,10 @@ namespace db
 			}
 		};
 
+		double lambda;
 		double WRsum = 0;
 		uint32_t size = 0;
-		std::vector<double> v, vs;
+		std::vector<double> vs;
 		std::vector<std::vector<std::uint32_t>> vc;
 
 		std::map<std::vector<uint32_t>, wdl> DB_vecToWdl;
@@ -68,17 +73,35 @@ namespace db
 		{
 			this->isChanged = true;
 			this->DB_vecToWdl.clear();
+			lambda = 1;
+		}
+		chainDataBase(const double l)
+		{
+			this->isChanged = true;
+			this->DB_vecToWdl.clear();
+			lambda = l;
 		}
 		chainDataBase(const chainDataBase& ori)
 		{
 			this->WRsum = ori.WRsum;
 			this->size = ori.size;
-			this->v = ori.v;
 			this->vs = ori.vs;
 			this->vc = ori.vc;
 
 			this->isChanged = ori.isChanged;
 			this->DB_vecToWdl = ori.DB_vecToWdl;
+			lambda = 1;
+		}
+		chainDataBase(const chainDataBase& ori, const double l)
+		{
+			this->WRsum = ori.WRsum;
+			this->size = ori.size;
+			this->vs = ori.vs;
+			this->vc = ori.vc;
+
+			this->isChanged = ori.isChanged;
+			this->DB_vecToWdl = ori.DB_vecToWdl;
+			lambda = l;
 		}
 
 		void push(const uint32_t w, const uint32_t d, const uint32_t l, const std::vector<uint32_t>& vpush)
@@ -110,31 +133,27 @@ namespace db
 		}
 		std::vector<uint32_t> getTarget()
 		{
-
 			if(isChanged)
 			{
 				isChanged = false;
-				v.resize(0);
 				vc.resize(0);
 				vs.assign(1, 0.0);
 
 				WRsum = 0;
 				size = 0;
 
-				auto beginPtr = DB_vecToWdl.begin();
-				auto endPtr = DB_vecToWdl.end();
-				for(auto idx = beginPtr; idx != endPtr; idx++)
+				for(auto& i:DB_vecToWdl)
 				{
-					uint32_t winCnt = idx->second.win;
-					uint32_t gameCnt = winCnt + idx->second.lose + idx->second.draw;
-					double WR = winCnt / (double)gameCnt;
+					uint32_t winCnt = i.second.win;
+					uint32_t gameCnt = winCnt + i.second.lose + i.second.draw;
+					double WR = (double)winCnt / (double)gameCnt;
+					WR = std::pow(E, lambda * WR);
 
 					size++;
 					WRsum += WR;
 
-					v.emplace_back(WR);
 					vs.push_back(WR + vs.back());
-					vc.emplace_back(idx->first);
+					vc.emplace_back(i.first);
 				}
 			}
 
@@ -147,41 +166,43 @@ namespace db
 			return vc[x_ptr - 1];
 		}
 
-		std::vector<std::string> write()
+		std::vector<std::pair<std::vector<std::uint32_t>, double>> write()
 		{
-			auto startIdx = DB_vecToWdl.begin();
-			auto endIdx = DB_vecToWdl.end();
+			struct vectorContainer
+			{
+				std::vector<uint32_t> vec;
+				wdl w;
+				double P;
 
-			std::vector<std::pair<std::vector<uint32_t>, wdl>> originalBuffer;
-			for(auto i = startIdx; i != endIdx; i++)
-				originalBuffer.emplace_back(*i);
+				vectorContainer(std::vector<uint32_t> a, wdl b, double c) : vec(std::move(a)), w(b), P(c) {}
+			};
 
-			auto comp = [](auto &a, auto &b)->bool{return !(a.second < b.second);};
+			double psum = 0;
+			std::vector<vectorContainer> originalBuffer;
+			for(auto& i:DB_vecToWdl)
+			{
+				double s = i.second.sum();
+				double p = pow(E, lambda * (i.second.win / s));
+				psum += p;
+				originalBuffer.emplace_back(i.first, i.second, p);
+			}
+
+			auto comp = [](auto &a, auto &b)->bool{return !(a.w < b.w);};
 			std::sort(originalBuffer.begin(), originalBuffer.end(), comp);
 
-			std::vector<std::string> buffer;
+			std::vector<std::pair<std::vector<std::uint32_t>, double>> buffer;
 			for(auto &i:originalBuffer)
 			{
-				wdl& ptr = i.second;
-
-				std::string st = "";
-				for(auto &j:i.first)
-				{
-					std::string _s = std::to_string(j);
-					st += _s;
-					st += " ";
-				}
-
-				char* p = (char *)malloc(sizeof(char) * 1000);
-				sprintf(p, "win: %u draw: %u lose: %u", ptr.win, ptr.draw, ptr.lose);
-				std::string ptos(p);
-
-				st += ptos;
-				buffer.emplace_back(st);
+				buffer.emplace_back(i.vec, i.P / psum);
+				buffer.back().first.emplace_back(i.w.win);
+				buffer.back().first.emplace_back(i.w.draw);
+				buffer.back().first.emplace_back(i.w.lose);
 			}
 
 			return buffer;
 		}
+
+		void setLambda(const double l) { lambda = l; }
 	};
 }
 
