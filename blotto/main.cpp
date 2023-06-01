@@ -109,7 +109,7 @@ int main()
 	std::vector<std::vector<uint32_t>> s;
 	makeset(s, constituency_size, citizen_size);
 
-	while(testCount-->0)
+	for(int tcnt = 1; tcnt <= testCount; tcnt++)
 	{
 		std::cerr << "Remain Epoch " << (testCount + 1) << std::endl;
 		auto startTime = std::chrono::high_resolution_clock::now();
@@ -135,7 +135,7 @@ int main()
 		}
 
 		originalDB = newDB;
-		writeDB(originalDB, constituency_size, citizen_size, lambda, testCount, testPerRepeat);
+		writeDB(originalDB, constituency_size, citizen_size, lambda, tcnt, testPerRepeat);
 
 		auto endTime = std::chrono::high_resolution_clock::now();
 		auto deltaTime = std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count();
