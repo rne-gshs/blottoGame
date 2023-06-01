@@ -5,6 +5,7 @@
 #include <vector>
 #include <array>
 #include <algorithm>
+#include <cstdlib>
 #include <functional>
 #include <cstdint>
 #include <fstream>
@@ -41,14 +42,16 @@ void readDB(db::chainDataBase& originalDB, std::string _fileName, uint32_t const
 		originalDB.push(w, d, l, _v);
 	}
 }
-void writeDB(db::chainDataBase& originalDB, std::string _fileName, uint32_t constituency_size)
+void writeDB(db::chainDataBase& originalDB, uint32_t constituency_size, uint32_t citizen_size, double lambda, uint32_t rp, uint32_t gcnt)
 {
 	std::ofstream write;
-	write.open(_fileName);
+	char p[1000];
+	sprintf(p, "result/result_%d_%d_%.04lf_%d_%d.txt", constituency_size, citizen_size, lambda, rp, gcnt);
+	write.open(p);
 
 	if(!write.is_open())
 	{
-		std::cerr << "File No Exist " << _fileName << std::endl;
+		std::cerr << "File No Exist " << p << std::endl;
 		exit(3);
 	}
 
@@ -132,13 +135,12 @@ int main()
 		}
 
 		originalDB = newDB;
+		writeDB(originalDB, constituency_size, citizen_size, lambda, testCount, testPerRepeat);
 
 		auto endTime = std::chrono::high_resolution_clock::now();
 		auto deltaTime = std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count();
 		std::cerr << deltaTime << "s" << std::endl;
 	}
-
-	writeDB(originalDB, "result.txt", constituency_size);
 
 	return 0;
 }
