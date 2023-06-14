@@ -4,8 +4,6 @@
 #include <iostream>
 #include <vector>
 #include <array>
-#include <algorithm>
-#include <cstdlib>
 #include <functional>
 #include <cstdint>
 #include <fstream>
@@ -91,19 +89,30 @@ void makeset(std::vector<std::vector<uint32_t>>& v, uint32_t con_size, uint32_t 
 	f(0);
 }
 
-int main()
+int main(int argc, char* argv[])
 {
-	uint32_t constituency_size, citizen_size, citizen_sum = 0;
+	uint32_t constituency_size, citizen_size, citizen_sum = 0, argCount = 0;
+	uint32_t testPerRepeat, testCount;
 	double lambda;
 	std::vector<uint32_t> partyRuling;
 
-	std::cin >> constituency_size >> citizen_size >> lambda;
+	if(argc == 4)
+	{
+		constituency_size = std::stoul(argv[argCount++]);
+		citizen_size = std::stoul(argv[argCount++]);
+
+		testCount = std::stoul(argv[argCount++]);
+		testPerRepeat = std::stoul(argv[argCount++]);
+	}
+	else
+	{
+		std::cin >> constituency_size >> citizen_size >> lambda;
+		std::cin >> testCount >> testPerRepeat;
+	}
 
 	db::chainDataBase originalDB;
 	readDB(originalDB, "original.txt", constituency_size);
 
-	uint32_t testPerRepeat, testCount;
-	std::cin >> testCount >> testPerRepeat;
 	std::cerr << "Read Complete" << std::endl;
 
 	std::vector<std::vector<uint32_t>> s;
@@ -111,7 +120,7 @@ int main()
 
 	for(int tcnt = 1; tcnt <= testCount; tcnt++)
 	{
-		std::cerr << "Remain Epoch " << (testCount + 1) << std::endl;
+		std::cerr << "Remain Epoch " << tcnt << std::endl;
 		auto startTime = std::chrono::high_resolution_clock::now();
 		db::chainDataBase newDB(lambda);
 
