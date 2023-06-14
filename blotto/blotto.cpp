@@ -40,7 +40,7 @@ namespace blt
 	}
 
 	// 게임 진행
-	int32_t game(std::vector<uint32_t> a, std::vector<uint32_t> b) // 2000
+	int32_t game(std::vector<uint32_t>& a, std::vector<uint32_t>& b) // 2000
 	{
 		uint32_t sz = a.size();
 		if(sz != b.size())
